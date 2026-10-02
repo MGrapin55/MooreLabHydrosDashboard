@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Charting Example - HYDROS Developer Portal</title>
+  <script src="https://unpkg.com/echarts@5/dist/echarts.min.js"></script>
+  <style>
+    :root {
+      --bg-1: #0a0a0a;
+      --bg-2: #1a1a1a;
+      --bg-3: #2a2a2a;
+      --color-1: #ffffff;
+      --color-2: #b3b3b3;
+      --accent: #00d4ff;
+      --accent-dim: rgba(0, 212, 255, 0.15);
+      --border: #3a3a3a;
+      --success: #00cc66;
+      --danger: #ff4444;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-1);
+      color: var(--color-1);
+      min-height: 100vh;
+    }
+
+    .nav {
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-1);
+    }
+    .nav-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.9rem 2rem;
+    }
+    .nav-logo { display: block; }
+    .nav-logo img { height: 30px; width: auto; display: block; }
+    @media (max-width: 760px) {
+      .nav-logo img { height: 26px; }
+    }
+    .nav-sep { color: var(--border); }
+    .nav-title { color: var(--color-2); font-size: 0.95rem; }
+
+    .screen { display: none; max-width: 960px; margin: 0 auto; padding: 3rem 2rem; }
+    .screen.active { display: block; }
+
+    .connect-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2.5rem;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .connect-card h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .connect-card p { color: var(--color-2); font-size: 0.9rem; margin-bottom: 2rem; }
+
+    .field { margin-bottom: 1.25rem; }
+    .field label { display: block; font-size: 0.85rem; color: var(--color-2); margin-bottom: 0.4rem; }
+    .field input, .field select {
+      width: 100%;
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--color-1);
+      padding: 0.65rem 0.85rem;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    .field input:focus, .field select:focus { border-color: var(--accent); }
+
+    .btn {
+      display: inline-block;
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--color-1);
+      padding: 0.6rem 1.1rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .btn:hover { border-color: var(--accent); }
+    .btn-primary { background: var(--accent); border-color: var(--accent); color: #001318; font-weight: 600; }
+    .btn-primary:hover { filter: brightness(1.1); }
+    .btn-full { width: 100%; }
+    .btn.range-active { border-color: var(--accent); background: var(--accent-dim); }
+    .btn:disabled { opacity: 0.5; cursor: default; }
+
+    .error-msg { color: var(--danger); font-size: 0.85rem; margin-top: 1rem; display: none; }
+    .error-msg.visible { display: block; }
+
+    .back-link {
+      background: none; border: none; color: var(--color-2);
+      font-size: 0.9rem; cursor: pointer; margin-bottom: 1.5rem; padding: 0;
+    }
+    .back-link:hover { color: var(--accent); }
+
+    .page-header h1 { font-size: 1.4rem; }
+    .page-header .subtitle { color: var(--color-2); font-size: 0.85rem; margin-top: 0.25rem; }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 1.5rem 0 1rem;
+    }
+    .toolbar .spacer { flex: 1; }
+    .toolbar select {
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--color-1);
+      padding: 0.55rem 0.85rem;
+      font-size: 0.9rem;
+    }
+
+    .chart-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+    }
+    #chart { width: 100%; height: 420px; }
+    .chart-note { color: var(--color-2); font-size: 0.8rem; margin-top: 0.75rem; }
+
+    #event-panel { margin-top: 1rem; }
+    #event-panel h2 { font-size: 1.05rem; margin: 0 0 0.25rem; }
+    #event-panel p { color: var(--color-2); font-size: 0.8rem; margin: 0 0 0.75rem; }
+    #event-panel table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    #event-panel th, #event-panel td {
+      text-align: left;
+      padding: 0.45rem 1.25rem 0.45rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    #event-panel th { color: var(--color-2); font-weight: 600; }
+    #event-panel tr:last-child td { border-bottom: none; }
+
+    .picker { position: relative; }
+    .picker-panel {
+      position: absolute; z-index: 10; top: calc(100% + 6px); left: 0;
+      min-width: 280px; max-height: 320px; overflow-y: auto;
+      background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px;
+      padding: 0.5rem; display: none;
+    }
+    .picker-panel.open { display: block; }
+    .picker-actions { display: flex; gap: 0.5rem; padding: 0.25rem 0.25rem 0.5rem; border-bottom: 1px solid var(--border); margin-bottom: 0.4rem; }
+    .picker-actions button { background: none; border: none; color: var(--accent); font-size: 0.8rem; cursor: pointer; padding: 0; }
+    .picker-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.25rem; font-size: 0.85rem; cursor: pointer; border-radius: 6px; }
+    .picker-row:hover { background: var(--bg-3); }
+    .picker-row .series-type { color: var(--color-2); font-size: 0.75rem; margin-left: auto; }
+    .picker-row.disabled { opacity: 0.4; cursor: default; }
+    .picker-row.disabled:hover { background: none; }
+    .picker-group {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.35rem 0.25rem 0.2rem; font-size: 0.8rem; font-weight: 600;
+      color: var(--color-2); text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .picker-group.disabled { opacity: 0.4; }
+    .picker-note { color: var(--color-2); font-size: 0.75rem; padding: 0.4rem 0.25rem 0; }
+
+    .code-section { margin-top: 3rem; }
+    .code-section h2 { font-size: 1.15rem; margin-bottom: 0.5rem; }
+    .code-section p { color: var(--color-2); font-size: 0.9rem; margin-bottom: 1rem; }
+    pre {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      overflow-x: auto;
+      font-size: 0.82rem;
+      line-height: 1.55;
+      color: var(--color-1);
+    }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .tok-comment { color: #6a9955; }
+    .tok-string { color: #ce9178; }
+    .tok-keyword { color: #569cd6; }
+    .tok-number { color: #b5cea8; }
+    .tok-func { color: #dcdcaa; }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+<div class="nav-inner">
+  <a href="index.html" class="nav-logo"><img src="assets/coralvue-logo.png" alt="CoralVue"></a>
+  <span class="nav-sep">›</span>
+  <span class="nav-title">Charting Example</span>
+</div>
+</nav>
+
+<!-- ── Screen: Connect ── -->
+<div class="screen active" id="screen-connect">
+  <div class="connect-card">
+    <h1>Chart Log Data</h1>
+    <p>
+      Charts <code>GET /api/v1/device/logs</code> with
+      <a href="https://echarts.apache.org/" style="color: var(--accent)">Apache ECharts</a>.
+      Keys are used only in this browser tab and are not stored.
+    </p>
+
+    <form id="form-connect">
+      <div class="field">
+        <label for="input-base-url">API Base URL</label>
+        <input id="input-base-url" type="text" value="https://api.coralvuehydros.com" spellcheck="false" autocomplete="off" />
+      </div>
+      <div class="field">
+        <label for="input-provider-key">Provider Key</label>
+        <input id="input-provider-key" type="password" placeholder="provider_key" spellcheck="false" autocomplete="off" />
+      </div>
+      <div class="field">
+        <label for="input-device-key">Device Key</label>
+        <input id="input-device-key" type="password" placeholder="device_key" spellcheck="false" autocomplete="off" />
+      </div>
+      <button class="btn btn-primary btn-full" type="submit" id="btn-connect">Connect</button>
+    </form>
+
+    <div class="error-msg" id="connect-error"></div>
+  </div>
+</div>
+
+<!-- ── Screen: Chart ── -->
+<div class="screen" id="screen-chart">
+  <button class="back-link" id="btn-back-connect">← Disconnect</button>
+  <div class="page-header">
+    <h1 id="device-name"></h1>
+    <div class="subtitle" id="device-id"></div>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn range-btn" data-hours="1">1h</button>
+    <button class="btn range-btn range-active" data-hours="6">6h</button>
+    <button class="btn range-btn" data-hours="24">24h</button>
+    <button class="btn range-btn" data-hours="168">7d</button>
+    <button class="btn range-btn" data-hours="720">30d</button>
+    <button class="btn range-btn" data-hours="2160">90d</button>
+    <button class="btn range-btn" data-hours="8760">1y</button>
+    <select id="resolution-select" aria-label="Resolution">
+      <option value="10m">10 minutes</option>
+      <option value="2h">2 hours</option>
+      <option value="1d">1 day</option>
+      <option value="events">Events</option>
+    </select>
+    <span class="spacer"></span>
+    <select id="export-format" aria-label="Export format"><option value="csv">CSV</option><option value="json">JSON</option></select>
+    <button class="btn" id="btn-export" title="Export selected range and resolution; 6 requests/hour">Download</button>
+  </div>
+  <div class="toolbar">
+    <div class="picker">
+      <button class="btn" id="btn-sensors" aria-haspopup="true" aria-expanded="false">Sensors</button>
+      <div class="picker-panel" id="sensor-panel">
+        <div class="picker-actions">
+          <button type="button" id="btn-sensors-none">Clear</button>
+        </div>
+        <div id="sensor-rows"></div>
+        <div class="picker-note">
+          Listed by <code>GET /logs/series</code> for the selected
+          resolution, grouped by unit - this demo charts one unit (one
+          y-axis) at a time. Sensors quiet for over 7 days are hidden.
+        </div>
+      </div>
+    </div>
+    <button class="btn" id="btn-refresh">Refresh</button>
+  </div>
+
+  <div class="chart-card">
+    <div id="chart"></div>
+    <div class="chart-note" id="query-summary" aria-live="polite">
+      Select a range and resolution. Original device timestamps are preserved.
+    </div>
+  </div>
+  <div class="error-msg" id="chart-error"></div>
+  <div class="chart-card" id="event-panel" hidden>
+    <h2>Point details</h2>
+    <p>State changes and event messages from the charted range (newest 200).</p>
+    <table><thead><tr><th>Time</th><th>Sensor</th><th>Value</th><th>Message</th></tr></thead><tbody id="event-rows"></tbody></table>
+  </div>
+
+  <div class="code-section">
+    <h2>Example JavaScript</h2>
+    <p>
+      Fetching log data and rendering it with ECharts:
+    </p>
+    <pre><code>// Discover what can be charted (names drive the sensor picker):
+const series = await fetch(
+  `${baseUrl}/api/v1/device/logs/series?resolution=10m`,
+  { headers: { Authorization: `${providerKey}:${deviceKey}` } }
+).then(r =&gt; r.json());
+
+const end = Date.now();
+const start = end - 6 * 60 * 60 * 1000;              // 6 hours
+
+const res = await fetch(
+  `${baseUrl}/api/v1/device/logs?start=${start}&amp;end=${end}&amp;resolution=10m`,
+  { headers: { Authorization: `${providerKey}:${deviceKey}` } }
+);
+const data = await res.json();
+
+const chart = echarts.init(document.getElementById('chart'));
+chart.setOption({
+  xAxis: { type: 'time' },
+  yAxis: { type: 'value', scale: true },
+  tooltip: { trigger: 'axis' },
+  legend: {},
+  series: Object.entries(data.series).map(([name, s]) =&gt; ({
+    name,
+    type: 'line',
+    showSymbol: false,
+    data: s.points.map(([time, value]) =&gt; [time, value]),
+  })),
+});</code></pre>
+    <p style="margin-top: 1rem">
+      For other libraries the point format differs: Chart.js takes
+      <code>points.map(([x, y]) =&gt; ({ x, y }))</code> on a time scale, and
+      Plotly takes separate <code>x</code> and <code>y</code> arrays. Each
+      series carries a <code>type</code> field (<code>Tmp</code>,
+      <code>pH</code>, …) identifying the unit; this page charts one unit
+      type at a time so all series share a y-axis. Values arrive in fixed
+      canonical units (<code>Tmp</code> °C, <code>ORP</code> mV,
+      <code>Sal</code> PSU, <code>Flo</code> LPH - full table in the API
+      reference) regardless of the controller's display setting; convert
+      client-side if you need °F or other units.
+    </p>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+let baseUrl = '';
+let providerKey = '';
+let deviceKey = '';
+let rangeHours = 6;
+let lastResponse = null;   // last /logs payload
+let chart = null;
+let seriesList = [];               // last /logs/series payload rows
+let selectedNames = new Set();     // picker selection; empty while nothing loaded
+
+// ── API ────────────────────────────────────────────────────────────────────
+function apiFetch(path) {
+  return fetch(baseUrl + path, {
+    headers: { 'Authorization': `${providerKey}:${deviceKey}` },
+  });
+}
+
+function queryParams() {
+  const end = Date.now();
+  const params = new URLSearchParams({ start: String(end - rangeHours * 3600000), end: String(end),
+    resolution: document.getElementById('resolution-select').value });
+  // Nothing renders until sensors are picked, so the name filter is always
+  // explicit (the API caps it at 100 names).
+  if (selectedNames.size) params.set('name', [...selectedNames].join(','));
+  return params;
+}
+
+// Canonical logged units by firmware type - values arrive in these units
+// regardless of the controller's display preference (see the API docs).
+const UNITS = { Tmp: '\u00b0C', pH: 'pH', ORP: 'mV', DKH: 'dKH', Sal: 'PSU', Flo: 'LPH' };
+function unitLabel(type) {
+  return UNITS[type] ? `${type} (${UNITS[type]})` : type;
+}
+
+// The single y-axis unit currently in play: the type of the first selection.
+function activeUnit() {
+  for (const series of seriesList) {
+    if (selectedNames.has(series.name)) return series.type;
+  }
+  return null;
+}
+
+// ── Series discovery ───────────────────────────────────────────────────────
+const STALE_MS = 7 * 24 * 3600000;
+
+async function loadSeries() {
+  const resolution = document.getElementById('resolution-select').value;
+  try {
+    const res = await apiFetch(`/api/v1/device/logs/series?resolution=${resolution}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const body = await res.json();
+    // Show only sensors with recent activity; long-quiet series stay
+    // queryable by name but are left out of the demo picker.
+    seriesList = body.series.filter(x => Date.now() - x.lastSeen <= STALE_MS);
+  } catch (err) {
+    // Discovery is a convenience: fall back to charting everything.
+    seriesList = [];
+    selectedNames = new Set();
+    renderSensorPicker();
+    return;
+  }
+  const names = new Set(seriesList.map(s => s.name));
+  selectedNames = new Set([...selectedNames].filter(n => names.has(n)));
+  renderSensorPicker();
+}
+
+function renderSensorPicker() {
+  const button = document.getElementById('btn-sensors');
+  const rows = document.getElementById('sensor-rows');
+  rows.replaceChildren();
+  if (!seriesList.length) {
+    button.textContent = 'Sensors';
+    return;
+  }
+  button.textContent = selectedNames.size
+    ? `Sensors (${selectedNames.size}/${seriesList.length})` : 'Sensors - pick some';
+
+  const unit = activeUnit();
+  const groups = new Map();
+  for (const series of seriesList) {
+    if (!groups.has(series.type)) groups.set(series.type, []);
+    groups.get(series.type).push(series);
+  }
+  for (const [type, members] of [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+    // One y-axis: once a unit is in play, other units grey out.
+    const locked = unit !== null && type !== unit;
+    const header = document.createElement('label');
+    header.className = 'picker-group' + (locked ? ' disabled' : '');
+    const groupBox = document.createElement('input');
+    groupBox.type = 'checkbox';
+    groupBox.disabled = locked;
+    groupBox.checked = !locked && members.every(m => selectedNames.has(m.name));
+    groupBox.addEventListener('change', () => {
+      for (const m of members) {
+        if (groupBox.checked) selectedNames.add(m.name); else selectedNames.delete(m.name);
+      }
+      renderSensorPicker();
+      refresh();
+    });
+    const title = document.createElement('span');
+    title.textContent = `${unitLabel(type)} \u00b7 ${members.length}`;
+    header.append(groupBox, title);
+    rows.appendChild(header);
+
+    for (const series of members) {
+      const row = document.createElement('label');
+      row.className = 'picker-row' + (locked ? ' disabled' : '');
+      const box = document.createElement('input');
+      box.type = 'checkbox';
+      box.disabled = locked;
+      box.checked = selectedNames.has(series.name);
+      box.addEventListener('change', () => {
+        if (box.checked) selectedNames.add(series.name); else selectedNames.delete(series.name);
+        renderSensorPicker();
+        refresh();
+      });
+      const name = document.createElement('span');
+      name.className = 'series-name';
+      name.textContent = series.name;
+      row.append(box, name);
+      rows.appendChild(row);
+    }
+  }
+}
+
+async function loadSensorData() {
+  const res = await apiFetch(`/api/v1/device/logs?${queryParams()}`);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+// ── Rendering ──────────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showError(elementId, message) {
+  const el = document.getElementById(elementId);
+  el.textContent = message;
+  el.classList.add('visible');
+}
+
+function clearError(elementId) {
+  const el = document.getElementById(elementId);
+  el.textContent = '';
+  el.classList.remove('visible');
+}
+
+function renderChart() {
+  const data = lastResponse;
+  const series = Object.entries(data.series)
+    .map(([name, s]) => ({ name, type: s.sensorType === 'event' ? 'scatter' : 'line',
+      step: ['bool', 'enum'].includes(s.sensorType) ? 'end' : false,
+      showSymbol: s.sensorType !== 'analog', data: s.points.map(([time, value]) => [time, value]) }));
+
+  chart = chart || echarts.init(document.getElementById('chart'), 'dark');
+  chart.clear();
+  chart.setOption({
+    backgroundColor: 'transparent',
+    xAxis: { type: 'time' },
+    yAxis: { type: 'value', scale: true, name: unitLabel(activeUnit() || '') },
+    tooltip: { trigger: 'axis' },
+    legend: { top: 0 },
+    grid: { top: 40, right: 20, bottom: 30, left: 50 },
+    series,
+  });
+  const details = Object.entries(data.series)
+    .flatMap(([name, s]) => s.points.filter(p => s.sensorType !== 'analog' || p[2]).map(p => ({ name, p })))
+    .sort((a, b) => b.p[0] - a.p[0]).slice(0, 200);
+  document.getElementById('event-panel').hidden = !details.length;
+  const tbody = document.getElementById('event-rows');
+  tbody.replaceChildren();
+  for (const { name, p } of details) {
+    const tr = document.createElement('tr');
+    for (const value of [new Date(p[0]).toISOString(), name, p[1], p[2]]) {
+      const td = document.createElement('td'); td.textContent = String(value); tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+}
+
+let refreshVersion = 0;
+async function refresh() {
+  const version = ++refreshVersion;
+  clearError('chart-error');
+  if (selectedNames.size === 0) {
+    lastResponse = null;
+    if (chart) chart.clear();
+    document.getElementById('event-panel').hidden = true;
+    document.getElementById('query-summary').textContent =
+      'Pick sensors to chart - open the Sensors menu.';
+    return;
+  }
+  if (selectedNames.size > 100) {
+    showError('chart-error', 'Pick at most 100 sensors (the name filter limit).');
+    return;
+  }
+  try {
+    const response = await loadSensorData();
+    if (version !== refreshVersion) return;
+    lastResponse = response;
+    document.getElementById('query-summary').textContent = `${response.points} points · ${response.resolution}`;
+    if (Object.keys(lastResponse.series).length === 0) {
+      showError('chart-error', 'No retained data for this range, resolution, and sensor selection.');
+      if (chart) chart.clear();
+      document.getElementById('event-panel').hidden = true;
+      return;
+    }
+    renderChart();
+  } catch (err) {
+    if (version !== refreshVersion) return;
+    lastResponse = null;
+    if (chart) chart.clear();
+    document.getElementById('event-panel').hidden = true;
+    showError('chart-error', 'Failed to load log data: ' + err.message);
+  }
+}
+
+// ── Events ─────────────────────────────────────────────────────────────────
+document.getElementById('form-connect').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  clearError('connect-error');
+  baseUrl = document.getElementById('input-base-url').value.trim().replace(/\/+$/, '');
+  providerKey = document.getElementById('input-provider-key').value.trim();
+  deviceKey = document.getElementById('input-device-key').value.trim();
+
+  const btn = document.getElementById('btn-connect');
+  btn.disabled = true;
+  try {
+    if (new URL(baseUrl).protocol !== 'https:') throw new Error('API Base URL must use HTTPS');
+    const res = await apiFetch('/api/v1/device');
+    if (!res.ok) throw new Error(res.status === 403 || res.status === 401 ? 'Invalid credentials' : `HTTP ${res.status}`);
+    const device = await res.json();
+    document.getElementById('device-name').textContent = device.friendlyName || device.deviceId;
+    document.getElementById('device-id').textContent = device.deviceId;
+    showScreen('screen-chart');
+    await loadSeries();
+    await refresh();
+  } catch (err) {
+    showError('connect-error', err.message);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+document.getElementById('btn-back-connect').addEventListener('click', () => {
+  ++refreshVersion;
+  providerKey = ''; deviceKey = ''; lastResponse = null;
+  seriesList = []; selectedNames = new Set();
+  renderSensorPicker();
+  document.getElementById('input-provider-key').value = '';
+  document.getElementById('input-device-key').value = '';
+  if (chart) chart.clear();
+  showScreen('screen-connect');
+});
+
+document.querySelectorAll('.range-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('range-active'));
+    btn.classList.add('range-active');
+    rangeHours = Number(btn.dataset.hours);
+    refresh();
+  });
+});
+
+document.getElementById('resolution-select').addEventListener('change', async () => { await loadSeries(); refresh(); });
+
+document.getElementById('btn-sensors').addEventListener('click', () => {
+  const panel = document.getElementById('sensor-panel');
+  const open = panel.classList.toggle('open');
+  document.getElementById('btn-sensors').setAttribute('aria-expanded', String(open));
+});
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.picker')) {
+    document.getElementById('sensor-panel').classList.remove('open');
+    document.getElementById('btn-sensors').setAttribute('aria-expanded', 'false');
+  }
+});
+document.getElementById('btn-sensors-none').addEventListener('click', () => {
+  selectedNames = new Set();
+  renderSensorPicker();
+  refresh();
+});
+document.getElementById('btn-refresh').addEventListener('click', refresh);
+
+document.getElementById('btn-export').addEventListener('click', async () => {
+  clearError('chart-error');
+  const btn = document.getElementById('btn-export');
+  btn.disabled = true;
+  try {
+    const params = queryParams();
+    params.set('format', document.getElementById('export-format').value);
+    params.set('timezone', Intl.DateTimeFormat().resolvedOptions().timeZone);
+    const res = await apiFetch(`/api/v1/device/logs/export?${params}`);
+    const body = await res.json();
+    if (!res.ok) throw new Error(body.message || `HTTP ${res.status}`);
+    window.location.href = body.url;   // signed URL, expires in ~15 minutes
+  } catch (err) {
+    showError('chart-error', 'Export failed: ' + err.message);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+window.addEventListener('resize', () => { if (chart) chart.resize(); });
+
+// ── Example-code syntax colors (tiny tokenizer, no dependencies) ───────────
+const JS_KEYWORDS = new Set(['const', 'let', 'var', 'function', 'return', 'await', 'async',
+  'new', 'if', 'else', 'for', 'of', 'in', 'typeof', 'class', 'true', 'false', 'null', 'undefined']);
+function escapeHtml(text) {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+for (const block of document.querySelectorAll('pre code')) {
+  const source = block.textContent;
+  const pattern = /(\/\/[^\n]*)|(`(?:[^`\\]|\\.)*`|'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*")|\b(\d+(?:\.\d+)?)\b|\b([A-Za-z_$][\w$]*)(?=\s*\()|\b([A-Za-z_$][\w$]*)\b/g;
+  let html = '';
+  let last = 0;
+  for (const m of source.matchAll(pattern)) {
+    html += escapeHtml(source.slice(last, m.index));
+    const [text, comment, string, number, call, word] = m;
+    const cls = comment ? 'tok-comment' : string ? 'tok-string' : number ? 'tok-number'
+      : call && !JS_KEYWORDS.has(call) ? 'tok-func'
+      : JS_KEYWORDS.has(call || word) ? 'tok-keyword' : null;
+    html += cls ? `<span class="${cls}">${escapeHtml(text)}</span>` : escapeHtml(text);
+    last = m.index + text.length;
+  }
+  block.innerHTML = html + escapeHtml(source.slice(last));
+}
+</script>
+
+</body>
+</html>
