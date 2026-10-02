@@ -569,6 +569,11 @@ document.getElementById('form-connect').addEventListener('submit', async (e) => 
   providerKey = document.getElementById('input-provider-key').value.trim();
   deviceKey = document.getElementById('input-device-key').value.trim();
 
+  // ── SAVE TO BROWSER LOCALSTORAGE ──
+  localStorage.setItem('hydros_base_url', baseUrl);
+  localStorage.setItem('hydros_provider_key', providerKey);
+  localStorage.setItem('hydros_device_key', deviceKey);
+
   const btn = document.getElementById('btn-connect');
   btn.disabled = true;
   try {
@@ -671,6 +676,41 @@ for (const block of document.querySelectorAll('pre code')) {
   }
   block.innerHTML = html + escapeHtml(source.slice(last));
 }
+
+
+// ── AUTO-LOGIN ON LOAD ──
+window.addEventListener('DOMContentLoaded', () => {
+  const savedBase = localStorage.getItem('hydros_base_url');
+  const savedProvider = localStorage.getItem('hydros_provider_key');
+  const savedDevice = localStorage.getItem('hydros_device_key');
+
+  if (savedBase && savedProvider && savedDevice) {
+    document.getElementById('input-base-url').value = savedBase;
+    document.getElementById('input-provider-key').value = savedProvider;
+    document.getElementById('input-device-key').value = savedDevice;
+    
+    // Automatically trigger the submit event to log in instantly
+    document.getElementById('form-connect').requestSubmit();
+  }
+});
+
+// ── cLEAR KEYS ON DISCONNECT ──
+document.getElementById('btn-back-connect').addEventListener('click', () => {
+  ++refreshVersion;
+  providerKey = ''; deviceKey = ''; lastResponse = null;
+  seriesList = []; selectedNames = new Set();
+  
+  // ── CLEAR LOCALSTORAGE ON DISCONNECT ──
+  localStorage.removeItem('hydros_base_url');
+  localStorage.removeItem('hydros_provider_key');
+  localStorage.removeItem('hydros_device_key');
+
+  renderSensorPicker();
+  document.getElementById('input-provider-key').value = '';
+  document.getElementById('input-device-key').value = '';
+  if (chart) chart.clear();
+  showScreen('screen-connect');
+});
 </script>
 
 </body>
