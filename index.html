@@ -269,16 +269,16 @@
   <template id="plot-controls-template">
     <div class="toolbar plot-toolbar">
       <button class="btn range-btn" data-hours="1">1h</button>
-      <button class="btn range-btn range-active" data-hours="6">6h</button>
+      <button class="btn range-btn" data-hours="6">6h</button>
       <button class="btn range-btn" data-hours="24">24h</button>
       <button class="btn range-btn" data-hours="168">7d</button>
       <button class="btn range-btn" data-hours="720">30d</button>
-      <button class="btn range-btn" data-hours="2160">90d</button>
+      <button class="btn range-btn range-active" data-hours="2160">90d</button>
       <button class="btn range-btn" data-hours="8760">1y</button>
       <select class="resolution-select" aria-label="Resolution">
         <option value="10m">10 minutes</option>
         <option value="2h">2 hours</option>
-        <option value="1d">1 day</option>
+        <option value="1d" selected>1 day</option>
         <option value="events">Events</option>
       </select>
       <div class="picker">
@@ -369,12 +369,13 @@ const CHART_TYPES = [
   { type: 'ORP', id: 'chart-orp' },
 ];
 const plotStates = Object.fromEntries(CHART_TYPES.map(({ type }) => [type, {
-  rangeHours: 6,
+  rangeHours: 2160,
   response: null,
   seriesList: [],
   selectedNames: new Set(),
   requestVersion: 0,
   discoveryVersion: 0,
+  selectionInitialized: false,
 }]));
 
 // ── API ────────────────────────────────────────────────────────────────────
@@ -428,7 +429,12 @@ async function loadSeries(type) {
     return false;
   }
   const names = new Set(state.seriesList.map(series => series.name));
-  state.selectedNames = new Set([...state.selectedNames].filter(name => names.has(name)));
+  if (!state.selectionInitialized) {
+    state.selectedNames = new Set(names);
+    state.selectionInitialized = true;
+  } else {
+    state.selectedNames = new Set([...state.selectedNames].filter(name => names.has(name)));
+  }
   renderSensorPicker(type);
   return true;
 }
@@ -703,6 +709,13 @@ document.getElementById('btn-back-connect').addEventListener('click', () => {
     state.response = null;
     state.seriesList = [];
     state.selectedNames.clear();
+    state.selectionInitialized = false;
+    state.rangeHours = 2160;
+    const card = document.querySelector(`.plot-card[data-type="${type}"]`);
+    card.querySelector('.resolution-select').value = '1d';
+    card.querySelectorAll('.range-btn').forEach(button => {
+      button.classList.toggle('range-active', button.dataset.hours === '2160');
+    });
     renderSensorPicker(type);
   }
   localStorage.removeItem('hydros_base_url');
