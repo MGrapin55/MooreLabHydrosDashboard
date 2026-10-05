@@ -112,6 +112,7 @@
       gap: 0.75rem;
       margin: 1.5rem 0 1rem;
     }
+    .plot-toolbar { margin: 0.75rem 0; }
     .toolbar .spacer { flex: 1; }
     .toolbar select {
       background: var(--bg-3);
@@ -128,7 +129,9 @@
       border-radius: 12px;
       padding: 1rem;
     }
-    #chart { width: 100%; height: 420px; }
+    .chart-card + .chart-card { margin-top: 1rem; }
+    .sensor-chart { width: 100%; height: 320px; }
+    .chart-card h2 { font-size: 1.05rem; margin: 0 0 0.5rem; }
     .chart-note { color: var(--color-2); font-size: 0.8rem; margin-top: 0.75rem; }
 
     #event-panel { margin-top: 1rem; }
@@ -191,7 +194,7 @@
 
 <nav class="nav">
 <div class="nav-inner">
-  <a href="index.html" class="nav-logo"><img src="assets/Akoningsi.pdf" alt="Moore Lab"></a>
+  <a href="index.html" class="nav-logo"><img src="assets/TramitochromisIntermedius.png" alt="Moore Lab"></a>
   <span class="nav-sep">›</span>
   <span class="nav-title">Moore Lab Hydros Dashboard</span>
 </div>
@@ -228,7 +231,7 @@
   </div>
 </div>
 
-<!-- ── Screen: Chart ── -->
+<!-- ── Screen: Chart Temp ── -->
 <div class="screen" id="screen-chart">
   <button class="back-link" id="btn-back-connect">← Disconnect</button>
   <div class="page-header">
@@ -236,56 +239,72 @@
     <div class="subtitle" id="device-id"></div>
   </div>
 
-  <div class="toolbar">
-    <button class="btn range-btn" data-hours="1">1h</button>
-    <button class="btn range-btn range-active" data-hours="6">6h</button>
-    <button class="btn range-btn" data-hours="24">24h</button>
-    <button class="btn range-btn" data-hours="168">7d</button>
-    <button class="btn range-btn" data-hours="720">30d</button>
-    <button class="btn range-btn" data-hours="2160">90d</button>
-    <button class="btn range-btn" data-hours="8760">1y</button>
-    <select id="resolution-select" aria-label="Resolution">
-      <option value="10m">10 minutes</option>
-      <option value="2h">2 hours</option>
-      <option value="1d">1 day</option>
-      <option value="events">Events</option>
-    </select>
-    <span class="spacer"></span>
-    <select id="export-format" aria-label="Export format"><option value="csv">CSV</option><option value="json">JSON</option></select>
-    <button class="btn" id="btn-export" title="Export selected range and resolution; 6 requests/hour">Download</button>
+  <div class="chart-card plot-card" data-type="Tmp" data-chart-id="chart-temp">
+    <h2>Temp</h2>
+    <div class="plot-controls"></div>
+    <div class="sensor-chart" id="chart-temp"></div>
+    <div class="chart-note plot-summary" aria-live="polite">Select sensors for this plot.</div>
+    <div class="error-msg plot-error"></div>
   </div>
-  <div class="toolbar">
-    <div class="picker">
-      <button class="btn" id="btn-sensors" aria-haspopup="true" aria-expanded="false">Sensors</button>
-      <div class="picker-panel" id="sensor-panel">
-        <div class="picker-actions">
-          <button type="button" id="btn-sensors-none">Clear</button>
-        </div>
-        <div id="sensor-rows"></div>
-        <div class="picker-note">
-          Listed by <code>GET /logs/series</code> for the selected
-          resolution, grouped by unit - this demo charts one unit (one
-          y-axis) at a time. Sensors quiet for over 7 days are hidden.
-        </div>
-      </div>
-    </div>
-    <button class="btn" id="btn-refresh">Refresh</button>
+  <div class="chart-card plot-card" data-type="pH" data-chart-id="chart-ph">
+    <h2>pH</h2>
+    <div class="plot-controls"></div>
+    <div class="sensor-chart" id="chart-ph"></div>
+    <div class="chart-note plot-summary" aria-live="polite">Select sensors for this plot.</div>
+    <div class="error-msg plot-error"></div>
   </div>
-
-  <div class="chart-card">
-    <div id="chart"></div>
-    <div class="chart-note" id="query-summary" aria-live="polite">
-      Select a range and resolution. Original device timestamps are preserved.
-    </div>
+  <div class="chart-card plot-card" data-type="ORP" data-chart-id="chart-orp">
+    <h2>ORP</h2>
+    <div class="plot-controls"></div>
+    <div class="sensor-chart" id="chart-orp"></div>
+    <div class="chart-note plot-summary" aria-live="polite">Select sensors for this plot.</div>
+    <div class="error-msg plot-error"></div>
   </div>
-  <div class="error-msg" id="chart-error"></div>
   <div class="chart-card" id="event-panel" hidden>
     <h2>Point details</h2>
     <p>State changes and event messages from the charted range (newest 200).</p>
     <table><thead><tr><th>Time</th><th>Sensor</th><th>Value</th><th>Message</th></tr></thead><tbody id="event-rows"></tbody></table>
   </div>
 
-<!--  Screen Section Code 'Module 2 - pH'-->  
+  <template id="plot-controls-template">
+    <div class="toolbar plot-toolbar">
+      <button class="btn range-btn" data-hours="1">1h</button>
+      <button class="btn range-btn range-active" data-hours="6">6h</button>
+      <button class="btn range-btn" data-hours="24">24h</button>
+      <button class="btn range-btn" data-hours="168">7d</button>
+      <button class="btn range-btn" data-hours="720">30d</button>
+      <button class="btn range-btn" data-hours="2160">90d</button>
+      <button class="btn range-btn" data-hours="8760">1y</button>
+      <select class="resolution-select" aria-label="Resolution">
+        <option value="10m">10 minutes</option>
+        <option value="2h">2 hours</option>
+        <option value="1d">1 day</option>
+        <option value="events">Events</option>
+      </select>
+      <div class="picker">
+        <button class="btn sensor-button" aria-haspopup="true" aria-expanded="false">Sensors</button>
+        <div class="picker-panel">
+          <div class="picker-actions">
+            <button type="button" class="select-all-sensors">Select all</button>
+            <button type="button" class="clear-sensors">Clear</button>
+          </div>
+          <div class="sensor-rows"></div>
+          <div class="picker-note">Sensors for this plot's metric. Sensors quiet for over 7 days are hidden.</div>
+        </div>
+      </div>
+      <select class="export-format" aria-label="Export format"><option value="csv">CSV</option><option value="json">JSON</option></select>
+      <button class="btn export-btn" title="Export this plot's selected range and sensors">Download</button>
+      <button class="btn refresh-btn">Refresh</button>
+    </div>
+  </template>
+
+
+  
+
+<!-- ── Screen: Chart pH ── -->
+
+<!-- ── Screen: Chart ORP ── -->
+
 
 
 <!-- ── Commenting Out Example Code Logic section ── 
@@ -343,11 +362,20 @@ chart.setOption({
 let baseUrl = '';
 let providerKey = '';
 let deviceKey = '';
-let rangeHours = 6;
-let lastResponse = null;   // last /logs payload
-let chart = null;
-let seriesList = [];               // last /logs/series payload rows
-let selectedNames = new Set();     // picker selection; empty while nothing loaded
+const charts = {};
+const CHART_TYPES = [
+  { type: 'Tmp', id: 'chart-temp' },
+  { type: 'pH', id: 'chart-ph' },
+  { type: 'ORP', id: 'chart-orp' },
+];
+const plotStates = Object.fromEntries(CHART_TYPES.map(({ type }) => [type, {
+  rangeHours: 6,
+  response: null,
+  seriesList: [],
+  selectedNames: new Set(),
+  requestVersion: 0,
+  discoveryVersion: 0,
+}]));
 
 // ── API ────────────────────────────────────────────────────────────────────
 function apiFetch(path) {
@@ -356,13 +384,13 @@ function apiFetch(path) {
   });
 }
 
-function queryParams() {
+function queryParams(type) {
+  const state = plotStates[type];
+  const card = document.querySelector(`.plot-card[data-type="${type}"]`);
   const end = Date.now();
-  const params = new URLSearchParams({ start: String(end - rangeHours * 3600000), end: String(end),
-    resolution: document.getElementById('resolution-select').value });
-  // Nothing renders until sensors are picked, so the name filter is always
-  // explicit (the API caps it at 100 names).
-  if (selectedNames.size) params.set('name', [...selectedNames].join(','));
+  const params = new URLSearchParams({ start: String(end - state.rangeHours * 3600000), end: String(end),
+    resolution: card.querySelector('.resolution-select').value });
+  if (state.selectedNames.size) params.set('name', [...state.selectedNames].join(','));
   return params;
 }
 
@@ -373,99 +401,71 @@ function unitLabel(type) {
   return UNITS[type] ? `${type} (${UNITS[type]})` : type;
 }
 
-// The single y-axis unit currently in play: the type of the first selection.
-function activeUnit() {
-  for (const series of seriesList) {
-    if (selectedNames.has(series.name)) return series.type;
-  }
-  return null;
-}
-
 // ── Series discovery ───────────────────────────────────────────────────────
 const STALE_MS = 7 * 24 * 3600000;
 
-async function loadSeries() {
-  const resolution = document.getElementById('resolution-select').value;
+async function loadSeries(type) {
+  const state = plotStates[type];
+  const card = document.querySelector(`.plot-card[data-type="${type}"]`);
+  const resolution = card.querySelector('.resolution-select').value;
+  const version = ++state.discoveryVersion;
   try {
     const res = await apiFetch(`/api/v1/device/logs/series?resolution=${resolution}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const body = await res.json();
-    // Show only sensors with recent activity; long-quiet series stay
-    // queryable by name but are left out of the demo picker.
-    seriesList = body.series.filter(x => Date.now() - x.lastSeen <= STALE_MS);
+    if (version !== state.discoveryVersion || card.querySelector('.resolution-select').value !== resolution) return;
+    state.seriesList = body.series.filter(series => series.type === type && Date.now() - series.lastSeen <= STALE_MS);
   } catch (err) {
-    // Discovery is a convenience: fall back to charting everything.
-    seriesList = [];
-    selectedNames = new Set();
-    renderSensorPicker();
-    return;
+    if (version !== state.discoveryVersion) return;
+    state.seriesList = [];
+    state.selectedNames.clear();
+    state.response = null;
+    state.requestVersion++;
+    clearCharts(type);
+    renderSensorPicker(type);
+    renderEventPanel();
+    showPlotError(type, `Failed to load sensors: ${err.message}`);
+    return false;
   }
-  const names = new Set(seriesList.map(s => s.name));
-  selectedNames = new Set([...selectedNames].filter(n => names.has(n)));
-  renderSensorPicker();
+  const names = new Set(state.seriesList.map(series => series.name));
+  state.selectedNames = new Set([...state.selectedNames].filter(name => names.has(name)));
+  renderSensorPicker(type);
+  return true;
 }
 
-function renderSensorPicker() {
-  const button = document.getElementById('btn-sensors');
-  const rows = document.getElementById('sensor-rows');
+function renderSensorPicker(type) {
+  const state = plotStates[type];
+  const card = document.querySelector(`.plot-card[data-type="${type}"]`);
+  const button = card.querySelector('.sensor-button');
+  const rows = card.querySelector('.sensor-rows');
   rows.replaceChildren();
-  if (!seriesList.length) {
-    button.textContent = 'Sensors';
+  if (!state.seriesList.length) {
+    button.textContent = 'Sensors (0)';
     return;
   }
-  button.textContent = selectedNames.size
-    ? `Sensors (${selectedNames.size}/${seriesList.length})` : 'Sensors - pick some';
+  button.textContent = `Sensors (${state.selectedNames.size}/${state.seriesList.length})`;
 
-  const unit = activeUnit();
-  const groups = new Map();
-  for (const series of seriesList) {
-    if (!groups.has(series.type)) groups.set(series.type, []);
-    groups.get(series.type).push(series);
-  }
-  for (const [type, members] of [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
-    // One y-axis: once a unit is in play, other units grey out.
-    const locked = unit !== null && type !== unit;
-    const header = document.createElement('label');
-    header.className = 'picker-group' + (locked ? ' disabled' : '');
-    const groupBox = document.createElement('input');
-    groupBox.type = 'checkbox';
-    groupBox.disabled = locked;
-    groupBox.checked = !locked && members.every(m => selectedNames.has(m.name));
-    groupBox.addEventListener('change', () => {
-      for (const m of members) {
-        if (groupBox.checked) selectedNames.add(m.name); else selectedNames.delete(m.name);
-      }
-      renderSensorPicker();
-      refresh();
+  for (const series of state.seriesList) {
+    const row = document.createElement('label');
+    row.className = 'picker-row';
+    const box = document.createElement('input');
+    box.type = 'checkbox';
+    box.checked = state.selectedNames.has(series.name);
+    box.addEventListener('change', () => {
+      if (box.checked) state.selectedNames.add(series.name); else state.selectedNames.delete(series.name);
+      renderSensorPicker(type);
+      refreshPlot(type);
     });
-    const title = document.createElement('span');
-    title.textContent = `${unitLabel(type)} \u00b7 ${members.length}`;
-    header.append(groupBox, title);
-    rows.appendChild(header);
-
-    for (const series of members) {
-      const row = document.createElement('label');
-      row.className = 'picker-row' + (locked ? ' disabled' : '');
-      const box = document.createElement('input');
-      box.type = 'checkbox';
-      box.disabled = locked;
-      box.checked = selectedNames.has(series.name);
-      box.addEventListener('change', () => {
-        if (box.checked) selectedNames.add(series.name); else selectedNames.delete(series.name);
-        renderSensorPicker();
-        refresh();
-      });
-      const name = document.createElement('span');
-      name.className = 'series-name';
-      name.textContent = series.name;
-      row.append(box, name);
-      rows.appendChild(row);
-    }
+    const name = document.createElement('span');
+    name.className = 'series-name';
+    name.textContent = series.name;
+    row.append(box, name);
+    rows.appendChild(row);
   }
 }
 
-async function loadSensorData() {
-  const res = await apiFetch(`/api/v1/device/logs?${queryParams()}`);
+async function loadSensorData(type) {
+  const res = await apiFetch(`/api/v1/device/logs?${queryParams(type)}`);
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.message || `HTTP ${res.status}`);
@@ -491,77 +491,176 @@ function clearError(elementId) {
   el.classList.remove('visible');
 }
 
-function renderChart() {
-  const data = lastResponse;
-  const series = Object.entries(data.series)
-    .map(([name, s]) => ({ name, type: s.sensorType === 'event' ? 'scatter' : 'line',
-      step: ['bool', 'enum'].includes(s.sensorType) ? 'end' : false,
-      showSymbol: s.sensorType !== 'analog', data: s.points.map(([time, value]) => [time, value]) }));
+function clearCharts(type) {
+  if (type) {
+    if (charts[type]) charts[type].clear();
+    return;
+  }
+  for (const chart of Object.values(charts)) chart.clear();
+}
 
-  chart = chart || echarts.init(document.getElementById('chart'), 'dark');
-  chart.clear();
-  chart.setOption({
-    backgroundColor: 'transparent',
-    xAxis: { type: 'time' },
-    yAxis: { type: 'value', scale: true, name: unitLabel(activeUnit() || '') },
-    tooltip: { trigger: 'axis' },
-    legend: { top: 0 },
-    grid: { top: 40, right: 20, bottom: 30, left: 50 },
-    series,
-  });
-  const details = Object.entries(data.series)
-    .flatMap(([name, s]) => s.points.filter(p => s.sensorType !== 'analog' || p[2]).map(p => ({ name, p })))
-    .sort((a, b) => b.p[0] - a.p[0]).slice(0, 200);
+function showPlotError(type, message) {
+  const el = document.querySelector(`.plot-card[data-type="${type}"] .plot-error`);
+  el.textContent = message;
+  el.classList.add('visible');
+}
+
+function clearPlotError(type) {
+  const el = document.querySelector(`.plot-card[data-type="${type}"] .plot-error`);
+  el.textContent = '';
+  el.classList.remove('visible');
+}
+
+function renderEventPanel() {
+  const details = CHART_TYPES.flatMap(({ type }) => {
+    const response = plotStates[type].response;
+    if (!response) return [];
+    return Object.entries(response.series)
+      .flatMap(([name, sensor]) => sensor.points
+        .filter(point => sensor.sensorType !== 'analog' || point[2])
+        .map(point => ({ name, point })));
+  }).sort((a, b) => b.point[0] - a.point[0]).slice(0, 200);
   document.getElementById('event-panel').hidden = !details.length;
   const tbody = document.getElementById('event-rows');
   tbody.replaceChildren();
-  for (const { name, p } of details) {
+  for (const { name, point } of details) {
     const tr = document.createElement('tr');
-    for (const value of [new Date(p[0]).toISOString(), name, p[1], p[2]]) {
+    for (const value of [new Date(point[0]).toISOString(), name, point[1], point[2]]) {
       const td = document.createElement('td'); td.textContent = String(value); tr.appendChild(td);
     }
     tbody.appendChild(tr);
   }
 }
 
-let refreshVersion = 0;
-async function refresh() {
-  const version = ++refreshVersion;
-  clearError('chart-error');
-  if (selectedNames.size === 0) {
-    lastResponse = null;
-    if (chart) chart.clear();
-    document.getElementById('event-panel').hidden = true;
-    document.getElementById('query-summary').textContent =
-      'Pick sensors to chart - open the Sensors menu.';
+function renderChart(type) {
+  const state = plotStates[type];
+  const chartConfig = CHART_TYPES.find(item => item.type === type);
+  const data = state.response;
+  const series = Object.entries(data.series)
+    .map(([name, sensor]) => ({ name, type: sensor.sensorType === 'event' ? 'scatter' : 'line',
+      step: ['bool', 'enum'].includes(sensor.sensorType) ? 'end' : false,
+      showSymbol: sensor.sensorType !== 'analog', data: sensor.points.map(([time, value]) => [time, value]) }));
+
+  charts[type] = charts[type] || echarts.init(document.getElementById(chartConfig.id), 'dark');
+  charts[type].clear();
+  charts[type].setOption({
+    backgroundColor: 'transparent',
+    xAxis: { type: 'time' },
+    yAxis: { type: 'value', scale: true, name: unitLabel(type) },
+    tooltip: { trigger: 'axis' },
+    legend: { top: 0 },
+    grid: { top: 40, right: 20, bottom: 30, left: 50 },
+    series,
+  });
+  document.querySelector(`.plot-card[data-type="${type}"] .plot-summary`).textContent =
+    `${data.points} points · ${data.resolution}`;
+  renderEventPanel();
+}
+
+async function refreshPlot(type) {
+  const state = plotStates[type];
+  const card = document.querySelector(`.plot-card[data-type="${type}"]`);
+  const version = ++state.requestVersion;
+  clearPlotError(type);
+  if (state.selectedNames.size === 0) {
+    state.response = null;
+    clearCharts(type);
+    card.querySelector('.plot-summary').textContent = 'Select sensors for this plot.';
+    renderEventPanel();
     return;
   }
-  if (selectedNames.size > 100) {
-    showError('chart-error', 'Pick at most 100 sensors (the name filter limit).');
+  if (state.selectedNames.size > 100) {
+    showPlotError(type, 'Pick at most 100 sensors (the name filter limit).');
     return;
   }
   try {
-    const response = await loadSensorData();
-    if (version !== refreshVersion) return;
-    lastResponse = response;
-    document.getElementById('query-summary').textContent = `${response.points} points · ${response.resolution}`;
-    if (Object.keys(lastResponse.series).length === 0) {
-      showError('chart-error', 'No retained data for this range, resolution, and sensor selection.');
-      if (chart) chart.clear();
-      document.getElementById('event-panel').hidden = true;
+    const response = await loadSensorData(type);
+    if (version !== state.requestVersion) return;
+    state.response = response;
+    if (Object.keys(response.series).length === 0) {
+      clearCharts(type);
+      card.querySelector('.plot-summary').textContent = `${response.points} points · ${response.resolution}`;
+      showPlotError(type, 'No retained data for this range, resolution, and sensor selection.');
+      renderEventPanel();
       return;
     }
-    renderChart();
+    renderChart(type);
   } catch (err) {
-    if (version !== refreshVersion) return;
-    lastResponse = null;
-    if (chart) chart.clear();
-    document.getElementById('event-panel').hidden = true;
-    showError('chart-error', 'Failed to load log data: ' + err.message);
+    if (version !== state.requestVersion) return;
+    state.response = null;
+    clearCharts(type);
+    renderEventPanel();
+    showPlotError(type, 'Failed to load log data: ' + err.message);
   }
 }
 
+function initializePlotControls() {
+  const template = document.getElementById('plot-controls-template');
+  for (const { type } of CHART_TYPES) {
+    const card = document.querySelector(`.plot-card[data-type="${type}"]`);
+    card.querySelector('.plot-controls').append(template.content.cloneNode(true));
+    renderSensorPicker(type);
+
+    for (const button of card.querySelectorAll('.range-btn')) {
+      button.addEventListener('click', () => {
+        plotStates[type].rangeHours = Number(button.dataset.hours);
+        card.querySelectorAll('.range-btn').forEach(item => item.classList.toggle('range-active', item === button));
+        refreshPlot(type);
+      });
+    }
+    card.querySelector('.resolution-select').addEventListener('change', async () => {
+      plotStates[type].requestVersion++;
+      if (await loadSeries(type)) refreshPlot(type);
+    });
+    card.querySelector('.sensor-button').addEventListener('click', () => {
+      const panel = card.querySelector('.picker-panel');
+      const open = panel.classList.toggle('open');
+      card.querySelector('.sensor-button').setAttribute('aria-expanded', String(open));
+    });
+    card.querySelector('.clear-sensors').addEventListener('click', () => {
+      plotStates[type].selectedNames.clear();
+      renderSensorPicker(type);
+      refreshPlot(type);
+    });
+    card.querySelector('.select-all-sensors').addEventListener('click', () => {
+      plotStates[type].selectedNames = new Set(plotStates[type].seriesList.map(series => series.name));
+      renderSensorPicker(type);
+      refreshPlot(type);
+    });
+    card.querySelector('.refresh-btn').addEventListener('click', () => refreshPlot(type));
+    card.querySelector('.export-btn').addEventListener('click', async event => {
+      clearPlotError(type);
+      const button = event.currentTarget;
+      button.disabled = true;
+      try {
+        const params = queryParams(type);
+        params.set('format', card.querySelector('.export-format').value);
+        params.set('timezone', Intl.DateTimeFormat().resolvedOptions().timeZone);
+        const res = await apiFetch(`/api/v1/device/logs/export?${params}`);
+        const body = await res.json();
+        if (!res.ok) throw new Error(body.message || `HTTP ${res.status}`);
+        window.location.href = body.url;
+      } catch (err) {
+        showPlotError(type, 'Export failed: ' + err.message);
+      } finally {
+        button.disabled = false;
+      }
+    });
+  }
+
+  document.addEventListener('click', event => {
+    if (!event.target.closest('.picker')) {
+      for (const card of document.querySelectorAll('.plot-card')) {
+        card.querySelector('.picker-panel').classList.remove('open');
+        card.querySelector('.sensor-button').setAttribute('aria-expanded', 'false');
+      }
+    }
+  });
+}
+
 // ── Events ─────────────────────────────────────────────────────────────────
+initializePlotControls();
+
 document.getElementById('form-connect').addEventListener('submit', async (e) => {
   e.preventDefault();
   clearError('connect-error');
@@ -584,8 +683,9 @@ document.getElementById('form-connect').addEventListener('submit', async (e) => 
     document.getElementById('device-name').textContent = device.friendlyName || device.deviceId;
     document.getElementById('device-id').textContent = device.deviceId;
     showScreen('screen-chart');
-    await loadSeries();
-    await refresh();
+    await Promise.all(CHART_TYPES.map(async ({ type }) => {
+      if (await loadSeries(type)) refreshPlot(type);
+    }));
   } catch (err) {
     showError('connect-error', err.message);
   } finally {
@@ -594,65 +694,27 @@ document.getElementById('form-connect').addEventListener('submit', async (e) => 
 });
 
 document.getElementById('btn-back-connect').addEventListener('click', () => {
-  ++refreshVersion;
-  providerKey = ''; deviceKey = ''; lastResponse = null;
-  seriesList = []; selectedNames = new Set();
-  renderSensorPicker();
+  providerKey = '';
+  deviceKey = '';
+  for (const { type } of CHART_TYPES) {
+    const state = plotStates[type];
+    state.requestVersion++;
+    state.discoveryVersion++;
+    state.response = null;
+    state.seriesList = [];
+    state.selectedNames.clear();
+    renderSensorPicker(type);
+  }
+  localStorage.removeItem('hydros_base_url');
+  localStorage.removeItem('hydros_provider_key');
+  localStorage.removeItem('hydros_device_key');
   document.getElementById('input-provider-key').value = '';
   document.getElementById('input-device-key').value = '';
-  if (chart) chart.clear();
+  clearCharts();
   showScreen('screen-connect');
 });
 
-document.querySelectorAll('.range-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('range-active'));
-    btn.classList.add('range-active');
-    rangeHours = Number(btn.dataset.hours);
-    refresh();
-  });
-});
-
-document.getElementById('resolution-select').addEventListener('change', async () => { await loadSeries(); refresh(); });
-
-document.getElementById('btn-sensors').addEventListener('click', () => {
-  const panel = document.getElementById('sensor-panel');
-  const open = panel.classList.toggle('open');
-  document.getElementById('btn-sensors').setAttribute('aria-expanded', String(open));
-});
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('.picker')) {
-    document.getElementById('sensor-panel').classList.remove('open');
-    document.getElementById('btn-sensors').setAttribute('aria-expanded', 'false');
-  }
-});
-document.getElementById('btn-sensors-none').addEventListener('click', () => {
-  selectedNames = new Set();
-  renderSensorPicker();
-  refresh();
-});
-document.getElementById('btn-refresh').addEventListener('click', refresh);
-
-document.getElementById('btn-export').addEventListener('click', async () => {
-  clearError('chart-error');
-  const btn = document.getElementById('btn-export');
-  btn.disabled = true;
-  try {
-    const params = queryParams();
-    params.set('format', document.getElementById('export-format').value);
-    params.set('timezone', Intl.DateTimeFormat().resolvedOptions().timeZone);
-    const res = await apiFetch(`/api/v1/device/logs/export?${params}`);
-    const body = await res.json();
-    if (!res.ok) throw new Error(body.message || `HTTP ${res.status}`);
-    window.location.href = body.url;   // signed URL, expires in ~15 minutes
-  } catch (err) {
-    showError('chart-error', 'Export failed: ' + err.message);
-  } finally {
-    btn.disabled = false;
-  }
-});
-
-window.addEventListener('resize', () => { if (chart) chart.resize(); });
+window.addEventListener('resize', () => { for (const chart of Object.values(charts)) chart.resize(); });
 
 // ── Example-code syntax colors (tiny tokenizer, no dependencies) ───────────
 const JS_KEYWORDS = new Set(['const', 'let', 'var', 'function', 'return', 'await', 'async',
@@ -694,23 +756,6 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// ── cLEAR KEYS ON DISCONNECT ──
-document.getElementById('btn-back-connect').addEventListener('click', () => {
-  ++refreshVersion;
-  providerKey = ''; deviceKey = ''; lastResponse = null;
-  seriesList = []; selectedNames = new Set();
-  
-  // ── CLEAR LOCALSTORAGE ON DISCONNECT ──
-  localStorage.removeItem('hydros_base_url');
-  localStorage.removeItem('hydros_provider_key');
-  localStorage.removeItem('hydros_device_key');
-
-  renderSensorPicker();
-  document.getElementById('input-provider-key').value = '';
-  document.getElementById('input-device-key').value = '';
-  if (chart) chart.clear();
-  showScreen('screen-connect');
-});
 </script>
 
 </body>
