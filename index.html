@@ -569,8 +569,19 @@ function renderChart(type) {
   }
 },
     tooltip: { trigger: 'axis' },
-    legend: { top: 0 },
-    grid: { top: 40, right: 20, bottom: 30, left: 50 },
+    legend: {
+    top: 10,            // Distance from top edge (or 'top')
+    left: 'center',     // Horizontally centers the legend
+    orient: 'horizontal', // Displays legend items side-by-side
+    type: 'scroll'      // (Optional) Adds scroll arrows if you have many probes
+  },
+  
+  grid: {
+    top: 50,  // Leave ~50px headroom so top legend doesn't overlap plot area/Y-axis
+    right: 20,
+    bottom: 30,
+    left: 55
+  },
     series,
   });
   document.querySelector(`.plot-card[data-type="${type}"] .plot-summary`).textContent =
