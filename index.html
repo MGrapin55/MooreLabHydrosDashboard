@@ -552,7 +552,22 @@ function renderChart(type) {
   charts[type].setOption({
     backgroundColor: 'transparent',
     xAxis: { type: 'time' },
-    yAxis: { type: 'value', scale: true, name: unitLabel(type) },
+    yAxis: {
+  type: 'value',
+  scale: true,
+  name: unitLabel(type),
+  nameLocation: 'middle',
+  nameGap: 35,
+  nameRotate: 90,
+  
+  // Force ECharts to use your page font and styling
+  nameTextStyle: {
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#ffffff' // Match your theme color
+  }
+},
     tooltip: { trigger: 'axis' },
     legend: { top: 0 },
     grid: { top: 40, right: 20, bottom: 30, left: 50 },
