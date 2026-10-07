@@ -5,6 +5,7 @@
 #SBATCH --mem=512M
 #SBATCH --output=hydros-writer-%j.out
 #SBATCH --error=hydros-writer-%j.err
+#SBATCH --partition=batch
 
 set -euo pipefail
 
