@@ -11,7 +11,7 @@ set -euo pipefail
 
 module load python/3.12
 
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$SLURM_SUBMIT_DIR"
 ENV_FILE="${SCRIPT_DIR}/.hydros.env"
 
 if [[ ! -f "${ENV_FILE}" ]]; then
