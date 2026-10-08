@@ -9,6 +9,8 @@
 
 set -euo pipefail
 
+module load python/3.12
+
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 ENV_FILE="${SCRIPT_DIR}/.hydros.env"
 
@@ -27,3 +29,7 @@ python3 HydrosWriter.py
 find "$SCRIPT_DIR" -maxdepth 1 -type f \
   \( -name "hydros-writer-*.err" -o -name "hydros-writer-*.out" \) \
   -mtime +365 -delete
+
+
+# Schedule the next run for n hours (1440 minutes) from now
+sbatch --begin=now+30days hydros-writer.sh
