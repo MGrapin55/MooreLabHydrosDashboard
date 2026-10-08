@@ -3,8 +3,8 @@
 #SBATCH --time=00:10:00
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=512M
-#SBATCH --output=hydros-writer-%j.out
-#SBATCH --error=hydros-writer-%j.err
+#SBATCH --output=out/hydros-writer-%j.out
+#SBATCH --error=error/hydros-writer-%j.err
 #SBATCH --partition=batch
 
 set -euo pipefail
