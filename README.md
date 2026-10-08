@@ -36,7 +36,7 @@ directory so Slurm writes its output and error logs there:
 
 ```bash
 cp .hydros.env.example .hydros.env
-chmod 600 .hydros.env
+chmod 640 .hydros.env
 sbatch hydros-writer.sh
 ```
 
@@ -44,11 +44,4 @@ The batch script assumes `python3` is available on the compute node. Add your
 cluster's required `--account` or `--partition` options to
 `backend/hydros-writer.sh` if needed.   
 
-Then have cron submit the job each month:
-```shell
-# Open the cron editor 
-cron -e 
-
-# paste this command in
-15 0 1 * * . $HOME/.bashrc; /usr/bin/sbatch /absolute/path/to/hydros-writer.sh
-```
+Set the time you want to run the script again with ```sbatch --begin=now+2minutes hydros-writer.sh``` at the end of ```hydros-writer.sh```.
