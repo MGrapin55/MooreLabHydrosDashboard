@@ -31,12 +31,13 @@ instead of duplicating its readings.
 ### Running with Slurm
 
 Copy `backend/.hydros.env.example` to `backend/.hydros.env`, add the API keys,
-and keep the credentials file private. Submit the batch job from the `backend`
+and keep the credentials file private. Maker ```error``` and ```out``` directories and  submit the batch job from the `backend`
 directory so Slurm writes its output and error logs there:
 
 ```bash
 cp .hydros.env.example .hydros.env
 chmod 640 .hydros.env
+mkdir -p error out
 sbatch hydros-writer.sh
 ```
 
@@ -44,4 +45,4 @@ The batch script assumes `python3` is available on the compute node. Add your
 cluster's required `--account` or `--partition` options to
 `backend/hydros-writer.sh` if needed.   
 
-Set the time you want to run the script again with ```sbatch --begin=now+2minutes hydros-writer.sh``` at the end of ```hydros-writer.sh```.
+Set the time you want to run the script again with ```sbatch --begin=now+30days hydros-writer.sh``` at the end of ```hydros-writer.sh```.
