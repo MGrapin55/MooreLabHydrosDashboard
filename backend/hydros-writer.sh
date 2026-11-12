@@ -25,8 +25,8 @@ cd "${SCRIPT_DIR}"
 python3 HydrosWriter.py
 
 
-# Remove old error and output slurm logs
-find "$SCRIPT_DIR" -maxdepth 1 -type f \
+# Remove old error and output slurm logs 
+find "$SCRIPT_DIR/error" "$SCRIPT_DIR/out" -maxdepth 1 -type f \
   \( -name "hydros-writer-*.err" -o -name "hydros-writer-*.out" \) \
   -mtime +365 -delete
 
