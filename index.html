@@ -260,6 +260,13 @@
     <div class="chart-note plot-summary" aria-live="polite">Select sensors for this plot.</div>
     <div class="error-msg plot-error"></div>
   </div>
+  <div class="chart-card plot-card" data-type="DKH" data-chart-id="chart-alkalinity">
+    <h2>Alkalinity (DKH)</h2>
+    <div class="plot-controls"></div>
+    <div class="sensor-chart" id="chart-alkalinity"></div>
+    <div class="chart-note plot-summary" aria-live="polite">Select sensors for this plot.</div>
+    <div class="error-msg plot-error"></div>
+  </div>
   <div class="chart-card" id="event-panel" hidden>
     <h2>Point details</h2>
     <p>State changes and event messages from the charted range (newest 200).</p>
@@ -367,6 +374,7 @@ const CHART_TYPES = [
   { type: 'Tmp', id: 'chart-temp' },
   { type: 'pH', id: 'chart-ph' },
   { type: 'ORP', id: 'chart-orp' },
+  { type: 'DKH', id: 'chart-alkalinity' },
 ];
 const plotStates = Object.fromEntries(CHART_TYPES.map(({ type }) => [type, {
   rangeHours: 2160,
