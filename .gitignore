@@ -1,2 +1,4 @@
 backend/data/
 backend/Logging.md
+backend/IV-pH-logs-issue.md
+backend/hydros-log-diagnostic.sh
